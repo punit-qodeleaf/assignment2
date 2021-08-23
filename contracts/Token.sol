@@ -2,22 +2,23 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
-contract Token is ERC20, ERC20Capped, AccessControl, Pausable {
+contract Token is ERC20Capped, AccessControl, Pausable {
     bytes32 public constant minterRole = keccak256("minter"); //roles defined
     bytes32 public constant burnerRole = keccak256("burner");
+
+    uint8 decimal;
 
     constructor(
         string memory name_,
         string memory symbol_,
-        uint256 decimal_,
+        uint8 decimal_,
         uint256 cappedSupply_,
         address admin_
     ) ERC20(name_, symbol_) ERC20Capped(cappedSupply_) Pausable() {
-        decimals(decimal_);
+        decimal = decimal_;
         _setupRole(DEFAULT_ADMIN_ROLE, admin_);
         _setRoleAdmin(minterRole, DEFAULT_ADMIN_ROLE);
         _setRoleAdmin(burnerRole, DEFAULT_ADMIN_ROLE);
@@ -39,8 +40,8 @@ contract Token is ERC20, ERC20Capped, AccessControl, Pausable {
         grantRole(burnerRole, newBurner);
     }
 
-    function decimals(uint256 _decimals) public pure returns (uint256) {
-        return _decimals;
+    function decimals() public view override returns (uint8) {
+        return decimal;
     }
 
     function mint(address account, uint256 amount)
@@ -53,7 +54,7 @@ contract Token is ERC20, ERC20Capped, AccessControl, Pausable {
 
     function _mint(address account, uint256 amount)
         internal
-        override(ERC20Capped, ERC20)
+        override
     {
         require(
             ERC20.totalSupply() + amount <= cap(),
