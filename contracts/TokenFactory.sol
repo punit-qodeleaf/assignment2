@@ -2,15 +2,15 @@
 pragma solidity ^0.8.0;
 
 import "./Token.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract TokenFactory {
-    uint256 public totalTokensDeployed;
+contract TokenFactory is Ownable{
+    uint256 public totalTokensDeployed = 0;
     mapping(uint256 => address) public tokenAddress;
     mapping(address => Token) public tokenDeployed;
-    Token recentToken;
 
-    constructor() {
-        totalTokensDeployed = 0;
+    constructor() Ownable(){
+
     }
 
     function deployToken(
@@ -23,8 +23,7 @@ contract TokenFactory {
             name_,
             symbol_,
             decimal_,
-            cappedSupply_,
-            address(this)
+            cappedSupply_
         );
         ++totalTokensDeployed;
         tokenAddress[totalTokensDeployed] = address(tkn);
@@ -33,18 +32,15 @@ contract TokenFactory {
     }
 
     function pauseToken(address tokenAddress_) public {
-        Token tkn = tokenDeployed[tokenAddress_];
-        tkn.pause();
+        tokenDeployed[tokenAddress_].pause();
     }
 
     function addMinterToToken(address tokenAddress_, address minter) public {
-        Token tkn = tokenDeployed[tokenAddress_];
-        tkn.addMinter(minter);
+       tokenDeployed[tokenAddress_].addMinter(minter);
     }
 
     function addBurnerToToken(address tokenAddress_, address burner) public {
-        Token tkn = tokenDeployed[tokenAddress_];
-        tkn.addBurner(burner);
+        tokenDeployed[tokenAddress_].addBurner(burner);
     }
 
     function totalSupply() public view returns (uint256) {

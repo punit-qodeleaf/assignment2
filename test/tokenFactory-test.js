@@ -47,7 +47,7 @@ describe("TokenFactory", function () {
     tokenDeployed = await Token.attach(TokenInstance);
 
     await tknftry.pauseToken(TokenInstance);
-    await expect(tokenDeployed.balanceOf(addr2.address)).to.be.reverted;
+    await expect(tokenDeployed.transfer(addr2.address, 500)).to.be.reverted;
    });
 
    it("should return total supply of all tokens deployed", async function () { 

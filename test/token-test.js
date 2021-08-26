@@ -1,7 +1,11 @@
-const { expect } = require("chai");
+const { expect, should } = require("chai");
+const chai = require("chai");
+chai.use(require("chai-events"));
+const EventEmitter = require("events");
 
 describe("Token", function () {
 
+  let emitter;
   let Token;
   let owner;
   let minter;
@@ -10,10 +14,11 @@ describe("Token", function () {
   let tkn;
 
   beforeEach(async function () {
+    emitter = new EventEmitter();
     Token = await ethers.getContractFactory("Token");
     [owner, minter, burner, ...addrs] = await ethers.getSigners();
 
-    tkn = await Token.deploy("Token", "tkn", 3, 10000, owner.address);
+    tkn = await Token.deploy("Token", "tkn", 3, 10000);
   })
 
   it("only owner should assign roles", async function () {
@@ -37,8 +42,10 @@ describe("Token", function () {
   it("pause should function correctly and could be called only by owner", async function () {
     await expect(tkn.connect(minter).pause()).to.be.reverted;
 
-    await tkn.pause();
-    await expect(tkn.balanceOf(burner.address)).to.be.reverted;
+    const pause_ = await tkn.pause();
+    await pause_.wait();
+    emitter.emit("Paused");
+    await expect(tkn.connect(minter).transfer(burner.address, 500)).to.be.reverted;
   });
 
   it("should burn and could be called by only burner", async function () {
@@ -55,6 +62,16 @@ describe("Token", function () {
   it("should not mint more than capped amount", async function () {
     await tkn.addMinter(minter.address);
 
-    await expect(tkn.connect(minter).mint(burner.address, 100000)).to.be.reverted;
+    await expect(tkn.connect(minter).mint(burner.address, 100000)).to.be.revertedWith("ERC20Capped: cap exceeded");
   });
+
+  it("should transfer when not paused", async function () {
+    await tkn.addMinter(minter.address);
+    await tkn.connect(minter).mint(burner.address, 1000);
+    await tkn.connect(burner).transfer(minter.address, 500);
+
+    emitter.emit("Transfer");
+
+    expect(await tkn.balanceOf(minter.address)).to.equal(500);
+  })
 });

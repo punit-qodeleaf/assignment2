@@ -15,11 +15,10 @@ contract Token is ERC20Capped, AccessControl, Pausable {
         string memory name_,
         string memory symbol_,
         uint8 decimal_,
-        uint256 cappedSupply_,
-        address admin_
+        uint256 cappedSupply_
     ) ERC20(name_, symbol_) ERC20Capped(cappedSupply_) Pausable() {
         decimal = decimal_;
-        _setupRole(DEFAULT_ADMIN_ROLE, admin_);
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setRoleAdmin(minterRole, DEFAULT_ADMIN_ROLE);
         _setRoleAdmin(burnerRole, DEFAULT_ADMIN_ROLE);
     }
@@ -49,13 +48,6 @@ contract Token is ERC20Capped, AccessControl, Pausable {
         onlyRole(minterRole)
         whenNotPaused
     {
-        _mint(account, amount);
-    }
-
-    function _mint(address account, uint256 amount)
-        internal
-        override
-    {
         require(
             ERC20.totalSupply() + amount <= cap(),
             "ERC20Capped: cap exceeded"
@@ -68,26 +60,6 @@ contract Token is ERC20Capped, AccessControl, Pausable {
         _pause();
     }
 
-    function balanceOf(address account)
-        public
-        view
-        override
-        whenNotPaused
-        returns (uint256)
-    {
-        return super.balanceOf(account);
-    }
-
-    function totalSupply()
-        public
-        view
-        override
-        whenNotPaused
-        returns (uint256)
-    {
-        return super.totalSupply();
-    }
-
     function transfer(address recipient, uint256 amount)
         public
         override
@@ -95,8 +67,7 @@ contract Token is ERC20Capped, AccessControl, Pausable {
         returns (bool)
     {
         //override for pause functionality
-        super.transfer(recipient, amount);
-        return true;
+        return super.transfer(recipient, amount);
     }
 
     function transferFrom(
