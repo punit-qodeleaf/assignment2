@@ -11,7 +11,7 @@ contract TokenFactoryV2 is Initializable, OwnableUpgradeable{
     mapping(address => Token) public tokenDeployed;
     mapping(uint => Token) public tokenIndexing;
     
-    event deployed(address tknAddress, uint tknIndex, string name, string symbol );
+    event deployed(address indexed tknAddress, uint indexed tknIndex, string name, string symbol );
 
     function deployToken(
         string memory name_,
