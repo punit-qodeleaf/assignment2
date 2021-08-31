@@ -5,14 +5,13 @@ import "./Token.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract TokenFactory is Initializable, OwnableUpgradeable{
+contract TokenFactoryV2 is Initializable, OwnableUpgradeable{
     uint256 public totalTokensDeployed;
     mapping(uint256 => address) public tokenAddress;
     mapping(address => Token) public tokenDeployed;
-
-    function initializerFn() public initializer {
-        totalTokensDeployed = 0;
-    }
+    mapping(uint => Token) public tokenIndexing;
+    
+    event deployed(address indexed tknAddress, uint indexed tknIndex, string name, string symbol );
 
     function deployToken(
         string memory name_,
@@ -29,6 +28,7 @@ contract TokenFactory is Initializable, OwnableUpgradeable{
         ++totalTokensDeployed;
         tokenAddress[totalTokensDeployed] = address(tkn);
         tokenDeployed[address(tkn)] = tkn;
+        emit deployed(address(tkn), totalTokensDeployed, name_, symbol_);
         return address(tkn);
     }
 
